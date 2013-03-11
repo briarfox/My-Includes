@@ -61,9 +61,9 @@ function Animation:addSprite(name,screenCoords,sSize)
                                 animDelay = 0,
                                 animSpeed = 5,
                                 speed = 1,
-                                coords = nil,
-                                moveCoords = {x=0,y=0,rotation=0},
-                                currentLoc = {x=screenCoords.x,y=screenCoords.y,rotation=0},
+                                spawnLoc = {x=screenCoords.x,y=screenCoords.y,rotation=screenCoords.rotation},
+                                moveCoords = {x=screenCoords.x,y=screenCoords.y,rotation=screenCoords.rotation},
+                                currentLoc = {x=screenCoords.x,y=screenCoords.y,rotation=screenCoords.rotation},
                                 size = sSize,
                                 animdelay = 0,
                                 visible = true,
@@ -138,8 +138,28 @@ function Animation:tweenSprite(name,speed,tweenLoc,params)
     tween(speed,sn.currentLoc,{x=locx,y=locy,rotation=locRotation},params,function() sn.currentLoc.rotation = 0 end)
 end
 
+
 function Animation:getLoc(name)
     return self.spriteName[name].currentLoc
+end
+
+function Animation:setLoc(name,loc)
+   self.spriteName[name].currentLoc = loc
+    self.spriteName[name].moveCoords = loc 
+end
+
+function Animation:moveSpawn(name)
+      print("Moving to spawn")
+        --print(self.spriteName[name].currentLoc.x)
+        print(self.spriteName[name].spawnLoc.x)
+    self.spriteName[name].currentLoc.x = self.spriteName[name].spawnLoc.x
+    self.spriteName[name].currentLoc.y = self.spriteName[name].spawnLoc.y
+    self.spriteName[name].currentLoc.rotation = self.spriteName[name].spawnLoc.rotation
+    self.spriteName[name].moveCoords.x = self.spriteName[name].spawnLoc.x
+    self.spriteName[name].moveCoords.y = self.spriteName[name].spawnLoc.y
+    self.spriteName[name].moveCoords.rotation = self.spriteName[name].spawnLoc.rotation
+
+
 end
 
 function Animation:speed(name,sp,ani)
