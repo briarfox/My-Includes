@@ -55,15 +55,15 @@ function Animation:setupCoords()
         end 
 end
 
-function Animation:addSprite(name,screenCoords,sSize)
-    
+function Animation:addSprite(name,sC,sSize)
+    if sC.size == nil then sC.size = vec2(1,1)end
     self.spriteName[name] = {
                                 animDelay = 0,
                                 animSpeed = 5,
                                 speed = 1,
-                                spawnLoc = {x=screenCoords.x,y=screenCoords.y,rotation=screenCoords.rotation},
-                                moveCoords = {x=screenCoords.x,y=screenCoords.y,rotation=screenCoords.rotation},
-                                currentLoc = {x=screenCoords.x,y=screenCoords.y,rotation=screenCoords.rotation},
+                                spawnLoc = {x=sC.x,y=sC.y,rotation=sC.rotation,size=sC.size},
+                                moveCoords = {x=sC.x,y=sC.y,rotation=sC.rotation,size=sC.size},
+                                currentLoc = {x=sC.x,y=sC.y,rotation=sC.rotation,size=sC.size},
                                 size = sSize,
                                 animdelay = 0,
                                 visible = true,
@@ -111,6 +111,7 @@ if self.spriteName[name].visible == true then
     --rotate(anim.currentLoc.rotation)
     translate(anim.currentLoc.x,anim.currentLoc.y)
     rotate(anim.currentLoc.rotation)
+    scale(anim.currentLoc.size.x,anim.currentLoc.size.y)
  
 local idx = self.m:addRect(0,0,anim.size.x,anim.size.y)
 
@@ -129,10 +130,11 @@ end
 end
 
 function Animation:tweenSprite(name,speed,tweenLoc,params)
-    local locx,locy,locRotation = 0
+    local locx,locy,locRotation = 0,0,0
     local sn = self.spriteName[name]
     if tweenLoc.x ~= nil then locx = tweenLoc.x end
     if tweenLoc.y ~= nil then locy = tweenLoc.y end
+    
     if tweenLoc.rotation ~= nil then locRotation = tweenLoc.rotation end
     
     tween(speed,sn.currentLoc,{x=locx,y=locy,rotation=locRotation},params,function() sn.currentLoc.rotation = 0 end)
