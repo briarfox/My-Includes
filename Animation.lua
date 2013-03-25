@@ -1,4 +1,5 @@
 --Sprite Sheet Animation
+local DEBUG = false
 --Developed by Chris Houser
 
 Animation = class()
@@ -9,6 +10,9 @@ function Animation:init(img,rows,cols)
     self.spriteName = {} --tables of sprites
     self.img = img --hold spritesheet img    
     self.m = mesh()
+    self.imgSizeX,self.imgSizeY = spriteSize(img)
+    self.imgSizeX = self.imgSizeX/cols
+    self.imgSizeY = self.imgSizeY/rows
     self.m.texture = img
     self.cols = cols
     self.rows = rows
@@ -39,14 +43,14 @@ function Animation:setupCoords()
    
     local counter = 1
     local x = 0
-    local y = 0
+    local y = self.rows -1
     for i=1, self.rows*self.cols do
         if counter <= self.cols then
         self.animationCoords[i] = vec2(x,y)
         x = x + 1
         counter = counter + 1
         else
-            y = y + 1
+            y = y - 1
             x = 0
             self.animationCoords[i] = vec2(x,y)
             x = x + 1
@@ -72,24 +76,109 @@ function Animation:addSprite(name,sC,sSize)
                                 currentAnimation = nil,
                                 currentFrame = 1
                             }    
-     if DEBUG==true then print("sprite "..name.." Created")end
+     debug(DEBUG,"sprite "..name.." Created")
     --print(a.idx)
 end
 
 function Animation:addAnimation(sName,aName,frames)
+    local DEBUG = false
+    debug(DEBUG,sName)
+    debug(DEBUG,aName)
+    debug(DEBUG,"Frame Count "..#frames)
+    debugf(DEBUG,dump,frames)
     self.spriteName[sName].animation[aName] = {}
-    
+    debugf(DEBUG,dump,self.spriteName[sName])
+    --debugf(DEBUG,dump,frames)
     for i=1,#frames do
         local j =frames[i]
-         
-       self.spriteName[sName].animation[aName][i] = self.animationCoords[j] 
+         debug(true,"Animation Name "..aName.." frame "..j)
+        debugd(DEBUG,self.animationCoords)
+        debug(DEBUG,self.spriteName[sName].animation[aName][i])
+        debug(DEBUG,self.animationCoords[tonumber(j)])
+       self.spriteName[sName].animation[aName][i] = self.animationCoords[tonumber(j)] 
+    debug(DEBUG,"loded and saved animations")
+    debugf(DEBUG,dump,self.spriteName[sName].animation[aName][i])
     end
     --print(self.spriteName.test.animation.forward[1])
     self.spriteName[sName].currentAnimation = aName
 end
 
+function Animation:spriteFromFile(name,coords,size)
+    local DEBUG = false
+    
+    local read = readProjectData(name.."csv")
+    debug(DEBUG,read)
+    if read == nil then return print("File Not Found") end
+    self :addSprite(name,coords,size)
+    debug(DEBUG,"Sprite Marker")
+    data = readCSV(read)
+    debugf(DEBUG,dump,data)
+    if data == nil then print("Problem Loading File") end
+    
+    local ctr = 1
+    --print("Elemnts in Data "..#data)
+    local anims = {}
+    table.insert(anims,{})
+    for i=1, #data do
+        
+        
+       if data[i] == "brk" then 
+            ctr = ctr + 1 
+            --print("hit Brk "..ctr)
+           anims[ctr] = {}
+        else
+            --dump(anims)
+            --print(ctr)
+            table.insert(anims[ctr],data[i])
+            debugf(DEBUG,dump,anims[ctr])
+            --print(anims[ctr][i])
+        end
+        
+    end
+    --dump(anims,"--")
+    --load animations
+    
+    for i=1,#anims do
+        debug(DEBUG,"Anims Passed "..i)
+        debugf(DEBUG,dump,anims[i])
+     self  :addAnimation(name,tostring(i),anims[i]) 
+    
+    end
+    
+    
+    
+    
+end
+
+function downloadAnimation(name,url,str)
+    function didGetAnimation(data,status,header)
+        saveProjectData(name.."csv",data)
+        print("CSV files Saved")
+        end
+        if url ~= nil then http.request(url,didGetAnimation) else
+            didGetAnimation(str) end
+    
+end
+
+function downloadSprite(name,url)
+-------------------------------------------------------    
+    function didGetImage(data,status,header)
+    saveImage("Documents:"..name,data)
+    print("Sprite Sheet Saved")
+    end
+    http.request(sUrl,didGetImage) 
+    --if animationUrl == nil then return end
+   -- http.request(aUrl,didGetAnimation)
+    
+    --Callback Functions
+    
+    
+end
+
 function Animation:drawAnimation(name)
- 
+ local DEBUG = false
+debug(DEBUG,"Sprite name passed "..name)
+debugf(DEBUG,dump,self.spriteName[name].animation)
 --if sprite is visible   
 if self.spriteName[name].visible == true then
     local anim = self.spriteName[name]
@@ -115,6 +204,8 @@ if self.spriteName[name].visible == true then
  
 local idx = self.m:addRect(0,0,anim.size.x,anim.size.y)
 
+debug(DEBUG,"print inside animation")
+debugf(DEBUG,dump,anim.animation[anim.currentAnimation])
 
    local  x = self.spriteName[name].animation[self.spriteName[name].currentAnimation][self.spriteName[name].currentFrame].x/self.cols
 
@@ -151,7 +242,7 @@ function Animation:setLoc(name,loc)
 end
 
 function Animation:moveSpawn(name)
-      print("Moving to spawn")
+     debug(DEBUG,"Moving to spawn")
         --print(self.spriteName[name].currentLoc.x)
         print(self.spriteName[name].spawnLoc.x)
     self.spriteName[name].currentLoc.x = self.spriteName[name].spawnLoc.x
@@ -168,6 +259,7 @@ function Animation:speed(name,sp,ani)
    self.spriteName[name].speed = sp
     self.spriteName[name].animSpeed = ani 
 end
+
 
 
 function Animation:setAnimation(sName,aName)
@@ -198,6 +290,8 @@ for i,j in pairs(self.spriteName) do
                 --change animation 
                 if j.animation["left"] ~= nil and j.moving == true then
                     j.currentAnimation = "left"
+                elseif j.animation["2"] ~= nil and j.moving == true then
+                    j.currentAnimation = "2"
                 end
                 --inc by speed
                 j.currentLoc.x = j.currentLoc.x - j.speed
@@ -206,6 +300,8 @@ for i,j in pairs(self.spriteName) do
                     j.moving = false
                     if j.animation["stop"] ~= nil then
                         j.currentAnimation = "stop"
+                    elseif j.animation["3"] ~= nil then
+                        j.currentAnimation = "3"
                     end
                 end
                 
@@ -215,6 +311,9 @@ for i,j in pairs(self.spriteName) do
                 --change animation 
                 if j.animation["right"] ~= nil and j.moving == true then
                     j.currentAnimation = "right"
+                elseif
+                    j.animation["1"] ~= nil and j.moving == true then
+                        j.currentAnimation = "1"
                 end
                 --inc by speed
                 j.currentLoc.x = j.currentLoc.x + j.speed
@@ -231,6 +330,8 @@ for i,j in pairs(self.spriteName) do
         
 end 
 end
+
+
 
 
 
