@@ -1,7 +1,10 @@
+
+import.libraries.FileIO = function()
 local DEBUG = false
-f = 0
+
+local f = 0
         
-function readCSV(data)
+function hlib.readCSV(data)
    local  m = data
     local t = {}                   -- table to store the indices
     local idx = 0
@@ -42,24 +45,38 @@ function readCSV(data)
         end
     end
     --table.insert(t,"brk")
-    debugf(DEBUG,dump,t)
+    --hlib.debugf(DEBUG,dump,t)
     return t
 end
 
-function getFile(file)
-    
+hlib.getFile = function(file,ret)
+    --local f
+    function didGetData(data,status,head)
+    print(status)
+        hlib.rImage = data
+        
+        print("File Request Sucess!")
+        --return f
+    end
     
     http.request(file,didGetData)
-    print("f is "..f)
+    --print("hit end")
     
-    print("returning F")
     return f
 end
 
-function didGetData(data,status,head)
-    print(status)
-        f = data
-        print("File Request Sucess!")
-        
+hlib.downloadSprite = function(name,url)
+if readImage("Documents:"..name) then return end 
+    function didGetImage(data,status,header)
+    saveImage("Documents:"..name,data)
+    print("Sprite Sheet Saved")
     end
+    http.request(url,didGetImage) 
+    
+    
+end
+
+--end import
+end
+
 

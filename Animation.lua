@@ -1,10 +1,14 @@
+import.libraries.Animation = function()
+--Sprite Sheet Animation
 --Sprite Sheet Animation
 local DEBUG = false
 --Developed by Chris Houser
+import.library("FileIO")
 
 Animation = class()
 
 function Animation:init(img,rows,cols)
+    parameter.boolean("ShowHitBox",false,function() self.drawRectBox = ShowHitBox end)
     -- you can accept and set parameters here
    -- self.animations = {}    
     self.spriteName = {} --tables of sprites
@@ -14,11 +18,18 @@ function Animation:init(img,rows,cols)
     self.imgSizeX = self.imgSizeX/cols
     self.imgSizeY = self.imgSizeY/rows
     self.m.texture = img
+   -- self.rectScale = 1
     self.cols = cols
     self.rows = rows
+    self.drawRectBox = false
+    
+    
+    --self.rectW = self.imgSizeX
+    --self.rectH = self.imgSizeY
     self.animationCoords = {} -- hold coords for each grid
     self :setupCoords()
 end
+
 
 function Animation:draw()
     --self.m:clear()
@@ -27,7 +38,10 @@ function Animation:draw()
     for i,j in pairs(self.spriteName) do
         
         self :drawAnimation(i)
-        end
+    
+        
+    if self.drawRectBox then self:drawBox(i) end
+    end
       --  self.m:draw()
       --  self.m:draw()
         
@@ -70,34 +84,54 @@ function Animation:addSprite(name,sC,sSize)
                                 currentLoc = {x=sC.x,y=sC.y,rotation=sC.rotation,size=sC.size},
                                 size = sSize,
                                 animdelay = 0,
+                                rectW = sSize.x,
+                                rectH = sSize.y,
                                 visible = true,
+                                rectLoc = {},
                                 moving = false,
                                 animation = {},
                                 currentAnimation = nil,
-                                currentFrame = 1
+                                currentFrame = 1,
+                                getRect = function() local x,y = self.spriteName[name].currentLoc.x,
+                                    self.spriteName[name].currentLoc.y
+                                    local w,h = self.spriteName[name].rectW,self.spriteName[name].size.y
+                                    y = y-(h/2)
+                                    
+                                    x = x-(w/2)
+                                    self.spriteName[name].rectLoc["x"]=x
+                                    self.spriteName[name].rectLoc["y"]=y
+                                    h = self.spriteName[name].rectH
+                                    self.spriteName[name].rectLoc["width"]=w
+                                    self.spriteName[name].rectLoc["height"]=h 
+                                    end
+                                
                             }    
-     debug(DEBUG,"sprite "..name.." Created")
+        --self.spriteName[name].getRect = self:rectBox(name)
+        
+    
+    
+     --debug(DEBUG,"sprite "..name.." Created")
     --print(a.idx)
 end
 
 function Animation:addAnimation(sName,aName,frames)
     local DEBUG = false
-    debug(DEBUG,sName)
-    debug(DEBUG,aName)
-    debug(DEBUG,"Frame Count "..#frames)
-    debugf(DEBUG,dump,frames)
+    --debug(DEBUG,sName)
+    --debug(DEBUG,aName)
+    --debug(DEBUG,"Frame Count "..#frames)
+    --debugf(DEBUG,dump,frames)
     self.spriteName[sName].animation[aName] = {}
-    debugf(DEBUG,dump,self.spriteName[sName])
+    --debugf(DEBUG,dump,self.spriteName[sName])
     --debugf(DEBUG,dump,frames)
     for i=1,#frames do
         local j =frames[i]
-         debug(true,"Animation Name "..aName.." frame "..j)
-        debugd(DEBUG,self.animationCoords)
-        debug(DEBUG,self.spriteName[sName].animation[aName][i])
-        debug(DEBUG,self.animationCoords[tonumber(j)])
+        -- debug(DEBUG,"Animation Name "..aName.." frame "..j)
+        --debugd(DEBUG,self.animationCoords)
+        --debug(DEBUG,self.spriteName[sName].animation[aName][i])
+        --debug(DEBUG,self.animationCoords[tonumber(j)])
        self.spriteName[sName].animation[aName][i] = self.animationCoords[tonumber(j)] 
-    debug(DEBUG,"loded and saved animations")
-    debugf(DEBUG,dump,self.spriteName[sName].animation[aName][i])
+    --debug(DEBUG,"loded and saved animations")
+    --debugf(DEBUG,dump,self.spriteName[sName].animation[aName][i])
     end
     --print(self.spriteName.test.animation.forward[1])
     self.spriteName[sName].currentAnimation = aName
@@ -107,12 +141,12 @@ function Animation:spriteFromFile(name,coords,size)
     local DEBUG = false
     
     local read = readProjectData(name.."csv")
-    debug(DEBUG,read)
+    --debug(DEBUG,read)
     if read == nil then return print("File Not Found") end
     self :addSprite(name,coords,size)
-    debug(DEBUG,"Sprite Marker")
-    data = readCSV(read)
-    debugf(DEBUG,dump,data)
+    --debug(DEBUG,"Sprite Marker")
+    data = hlib.readCSV(read)
+    --debugf(DEBUG,dump,data)
     if data == nil then print("Problem Loading File") end
     
     local ctr = 1
@@ -130,7 +164,7 @@ function Animation:spriteFromFile(name,coords,size)
             --dump(anims)
             --print(ctr)
             table.insert(anims[ctr],data[i])
-            debugf(DEBUG,dump,anims[ctr])
+            --debugf(DEBUG,dump,anims[ctr])
             --print(anims[ctr][i])
         end
         
@@ -139,8 +173,8 @@ function Animation:spriteFromFile(name,coords,size)
     --load animations
     
     for i=1,#anims do
-        debug(DEBUG,"Anims Passed "..i)
-        debugf(DEBUG,dump,anims[i])
+        --debug(DEBUG,"Anims Passed "..i)
+        --debugf(DEBUG,dump,anims[i])
      self  :addAnimation(name,tostring(i),anims[i]) 
     
     end
@@ -160,25 +194,13 @@ function downloadAnimation(name,url,str)
     
 end
 
-function downloadSprite(name,url)
--------------------------------------------------------    
-    function didGetImage(data,status,header)
-    saveImage("Documents:"..name,data)
-    print("Sprite Sheet Saved")
-    end
-    http.request(sUrl,didGetImage) 
-    --if animationUrl == nil then return end
-   -- http.request(aUrl,didGetAnimation)
-    
-    --Callback Functions
-    
-    
-end
+
 
 function Animation:drawAnimation(name)
  local DEBUG = false
-debug(DEBUG,"Sprite name passed "..name)
-debugf(DEBUG,dump,self.spriteName[name].animation)
+--debug(DEBUG,"Sprite name passed "..name)
+--debugf(DEBUG,dump,self.spriteName[name].animation)
+self.spriteName[name].getRect()
 --if sprite is visible   
 if self.spriteName[name].visible == true then
     local anim = self.spriteName[name]
@@ -204,8 +226,8 @@ if self.spriteName[name].visible == true then
  
 local idx = self.m:addRect(0,0,anim.size.x,anim.size.y)
 
-debug(DEBUG,"print inside animation")
-debugf(DEBUG,dump,anim.animation[anim.currentAnimation])
+--debug(DEBUG,"print inside animation")
+--debugf(DEBUG,dump,anim.animation[anim.currentAnimation])
 
    local  x = self.spriteName[name].animation[self.spriteName[name].currentAnimation][self.spriteName[name].currentFrame].x/self.cols
 
@@ -242,7 +264,7 @@ function Animation:setLoc(name,loc)
 end
 
 function Animation:moveSpawn(name)
-     debug(DEBUG,"Moving to spawn")
+     --debug(DEBUG,"Moving to spawn")
         --print(self.spriteName[name].currentLoc.x)
         print(self.spriteName[name].spawnLoc.x)
     self.spriteName[name].currentLoc.x = self.spriteName[name].spawnLoc.x
@@ -331,11 +353,62 @@ for i,j in pairs(self.spriteName) do
 end 
 end
 
+function Animation:getRect(name)
+    local x,y = self.spriteName[name].currentLoc.x, self.spriteName[name].currentLoc.y
+    local w,h = self.spriteName[name].size.x,self.spriteName[name].size.y
+    x = x-(w/2)
+    y = y-(h/2)
+    return {x=x,y=y,width=w,height=h}
+end
+
+function Animation:rectBox(name)
+    
+    local x,y = self.spriteName[name].currentLoc.x, self.spriteName[name].currentLoc.y
+    local w,h = self.spriteName[name].rectW,self.spriteName[name].rectH
+    x = x-(w/2)
+    y = y-(h/2)
+    return {x=x,y=y,width=w,height=h}
+end
+
+function Animation:drawBox(name)
+    local n = self.spriteName[name]
+    --print("drawing box for "..name)
+    
+        pushStyle()
+        stroke(255, 0, 26, 255)
+        strokeWidth(2)
+        --n.scaleRect()
+        n.getRect()
+        
+        line(n.rectLoc.x,n.rectLoc.y,n.rectLoc.x+n.rectLoc.width,n.rectLoc.y) 
+        line(n.rectLoc.x,n.rectLoc.y,n.rectLoc.x,n.rectLoc.y+n.rectLoc.height)
+        line(n.rectLoc.x,n.rectLoc.y+n.rectLoc.height,n.rectLoc.x+n.rectLoc.width,n.rectLoc.y+n.rectLoc.height)
+        line(n.rectLoc.x+n.rectLoc.width,n.rectLoc.y,n.rectLoc.x+n.rectLoc.width,n.rectLoc.y+n.rectLoc.height)
+        
+        --[[
+        local p = self.spriteName[name].getRect
+        line(p.x,p.y,p.x+p.width,p.y) 
+        line(p.x,p.y,p.x,p.y+p.height)
+        line(p.x,p.y+p.height,p.x+p.width,p.y+p.height)
+        line(p.x+p.width,p.y,p.x+p.width,p.y+p.height)
+        --]]
+        
+    
+end
+
+function Animation:scaleRect(s)
+    for i,j in pairs(self.spriteName) do
+    n = self.spriteName[i]
+    n.rectW = n.rectW * s
+    n.rectH = n.rectH * s
+    end
+    
+  --  print("Scaling Rect "..name)
+end
+                                      
 
 
-
-
-
+end
 
 
 

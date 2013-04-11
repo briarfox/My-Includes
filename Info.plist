@@ -6,20 +6,17 @@
 	<string>Unknown</string>
 	<key>Buffer Order</key>
 	<array>
+		<string>import</string>
 		<string>Main</string>
-		<string>Animation</string>
-		<string>Collision</string>
+		<string>CommonFunctions</string>
 		<string>FileIO</string>
+		<string>Animation</string>
 		<string>README</string>
-		<string>TableDump</string>
-		<string>Debug</string>
+		<string>StatusBar</string>
+		<string>Button</string>
 	</array>
 	<key>Created</key>
-	<string>2013-03-03 19:13:58 +0000</string>
-	<key>Dependencies</key>
-	<array>
-		<string>backup</string>
-	</array>
+	<string>2013-04-01 17:19:49 +0000</string>
 	<key>Description</key>
 	<string>No description available</string>
 </dict>
